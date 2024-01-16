@@ -40,7 +40,7 @@
 
 #define alloc(p, siz) \
 	p = malloc(siz); \
-	perrif(p == NULL, "Could not allocate memory");
+	perrif(p == NULL, "Could not allocate memory")
 
 /*
  * NOTE
@@ -56,7 +56,7 @@
  *
  */
 #define new(var, T) \
-	T *var; alloc(var, sizeof(T)) \
+	T *var; alloc(var, sizeof(T)); \
 	*var = (T){0};	// Initialize everything to zero-value
 
 
