@@ -1,16 +1,16 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include <errno.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <string.h>
 
 /*
  * errno.h	- errno
- * stdio.h	- stderr, fprintf
- * stdlib.h	- exit, EXIT_FAILURE
  * stdint.h	- SIZE_MAX
+ * stdio.h	- stderr, fprintf
+ * stdlib.h	- exit, EXIT_FAILURE, malloc, realloc
  * string.h	- strerror, memset
  */
 
@@ -60,7 +60,16 @@
 	*var = (T){0};	// Initialize everything to zero-value
 
 
-void *reallocarray(void *, size_t, size_t);
-#define reallocarr(p, n) \
-	p = reallocarray(p, n, sizeof(typeof(*p))); \
-	perrif(p == NULL, "Could not allocate memory")
+#define reallocarr(ptr, n) {\
+	size_t nmemb = (n); \
+	ptr = reallocarray(ptr, nmemb, sizeof(typeof(*ptr))); \
+	perrif(ptr == NULL, "Could not allocate memory"); }
+
+// s1 * s2 <= SIZE_MAX iff both s1 and s2 < sqrt(SIZE_MAX+1)
+#define reallocarray(ptr, nmemb, size) \
+	(nmemb == 0 ? realloc(ptr, 0) : \
+		((nmemb >= ((size_t)1 << (sizeof(size_t) * 4)) \
+		  || size >= ((size_t)1 << (sizeof(size_t) * 4))) \
+		 && nmemb > 0 && SIZE_MAX / nmemb < size) \
+		 ? (errno = ENOMEM), NULL \
+		 : realloc(ptr, size * nmemb))
