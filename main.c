@@ -5,16 +5,14 @@
 #define EPS "ϵ"
 
 int main(void) {
-	NFA *nfa = nfa4str("Hi!");
-	puts("graph {");
+	NFA *nfa = nfaOR(nfa4str("meh."), nfaOR(nfa4str("Hiya!"), nfa4str("Hello")));
+
+	puts("digraph {");
 	puts("\trankdir=\"LR\"");
 	puts("\tnode [shape=\"circle\"]");
-
+	printf("\t\"%d\" [shape=\"doublecircle\"]\n", nfa->end);
 	puts("");
-	for (Nstatenum i = 0; i < nfa->endcount; i++)
-		printf("\t\"%d\" [shape=\"doublecircle\"]\n", nfa->endstates[i]);
 
-	puts("");
 	for (Nstatenum i = 0; i < nfa->statecount; i++) {
 		for (Nstatenum j = 0; j < nfa->states[i]->etnum; j++)
 			printf("\t\"%d\" -> \"%d\" [label=\""EPS"\"]\n", i, nfa->states[i]->etrans[j]);

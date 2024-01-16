@@ -22,22 +22,21 @@ typedef struct {
 } Nstate;
 
 typedef struct {
-	Nstatenum statecount;
-	Nstatenum start;
 	Nstate **states;
-	Nstatenum endcount, *endstates;
+	Nstatenum statecount;
+	Nstatenum start, end;
 	bool alphabet[NFA_ALSIZ];
 } NFA;
 
 
 NFA *		newNFA(void);
 Nstatenum 	addNstate(NFA *);
-void		addEndState(NFA *, Nstatenum);
 Nstatenum	appendNFA(NFA *, NFA *);
 
 Nstate *	copyNstate(Nstate *);
 void		addTrans(Nstate *, char, Nstatenum);
 
 NFA *		nfa4str(const char *);
+NFA *		nfaOR(NFA *, NFA *);
 
 #endif//NFA_H

@@ -53,16 +53,15 @@ Nstatenum appendNFA(NFA *nfa, NFA *extend) {
 	return oldcount;
 }
 
-void addEndState(NFA *nfa, Nstatenum statenum) {
-	 add(nfa->endcount, 1);
-	 reallocarr(nfa->endstates, nfa->endcount);
-	 nfa->endstates[nfa->endcount - 1] = statenum;
-}
-
 void addTrans(Nstate *nstate, char c, Nstatenum to) {
 	add(nstate->tnum[c], 1);
 	reallocarr(nstate->trans[c], nstate->tnum[c]);
 	nstate->trans[c][nstate->tnum[c] - 1] = to;
+}
+void addEtrans(Nstate *nstate, Nstatenum to) {
+	add(nstate->etnum, 1);
+	reallocarr(nstate->etrans, nstate->etnum);
+	nstate->etrans[nstate->etnum - 1] = to;
 }
 
 NFA *nfa4str(const char *str) {
@@ -74,6 +73,21 @@ NFA *nfa4str(const char *str) {
 		oldstate = newstate; newstate = addNstate(nfa);
 		addTrans(nfa->states[oldstate], str[i], newstate);
 	}
-	addEndState(nfa, newstate);
+	nfa->end = newstate;
+	return nfa;
+}
+
+NFA *nfaOR(NFA *a, NFA *b) {
+	NFA *nfa = newNFA();
+	nfa->end = addNstate(nfa);
+
+	Nstatenum astart = appendNFA(nfa, a);
+	addEtrans(nfa->states[nfa->start], astart);
+	addEtrans(nfa->states[a->end + astart], nfa->end);
+
+	Nstatenum bstart = appendNFA(nfa, b);
+	addEtrans(nfa->states[nfa->start], bstart);
+	addEtrans(nfa->states[b->end + bstart], nfa->end);
+
 	return nfa;
 }
