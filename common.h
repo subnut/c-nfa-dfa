@@ -40,7 +40,7 @@
 
 #define alloc(p, siz) \
 	p = malloc(siz); \
-	perrif(p != NULL, "Could not allocate memory");
+	perrif(p == NULL, "Could not allocate memory");
 
 /*
  * NOTE
@@ -60,16 +60,7 @@
 	*var = (T){0};	// Initialize everything to zero-value
 
 
-/*
- * ((size_t)1 << (sizeof(size_t) * 4)) is sqrt(SIZE_MAX + 1)
- * s1 * s2 <= SIZE_MAX if both s1 and s2 are < sqrt(SIZE_MAX + 1)
- */
-#define reallocarr(p, n, s) p = reallocarray(p, n, s)
-#define reallocarray(ptr, nmemb, size) (nmemb == 0) ? realloc(ptr, 0) : \
-	(nmemb < ((size_t)1 << (sizeof(size_t) * 4)) \
-		&& size < ((size_t)1 << (sizeof(size_t) * 4)) \
-		&& nmemb > 0 && !(SIZE_MAX / nmemb < size)) \
-	? realloc(ptr, nmemb * size) \
-	: ((errno = EOVERFLOW), perror("Could not allocate memory"), NULL); \
-	perrif(ptr == NULL, "Could not allocate memory")
-
+void *reallocarray(void *, size_t, size_t);
+#define reallocarr(p, n) \
+	p = reallocarray(p, n, sizeof(typeof(*p))); \
+	perrif(p == NULL, "Could not allocate memory")

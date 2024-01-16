@@ -17,20 +17,27 @@ typedef int Nstatenum;
 
 
 typedef struct {
-	bool isFinal;
-	Nstatenum tnum[NFA_ALSIZ], *trans[NFA_ALSIZ];
 	Nstatenum etnum, *etrans;
+	Nstatenum tnum[NFA_ALSIZ], *trans[NFA_ALSIZ];
 } Nstate;
 
 typedef struct {
 	Nstatenum statecount;
+	Nstatenum start;
 	Nstate **states;
+	Nstatenum endcount, *endstates;
 	bool alphabet[NFA_ALSIZ];
 } NFA;
 
 
-NFA *newNFA(void);
-Nstatenum appendNFA(NFA *to, NFA *from);
+NFA *		newNFA(void);
+Nstatenum 	addNstate(NFA *);
+void		addEndState(NFA *, Nstatenum);
+Nstatenum	appendNFA(NFA *, NFA *);
 
+Nstate *	copyNstate(Nstate *);
+void		addTrans(Nstate *, char, Nstatenum);
+
+NFA *		nfa4str(const char *);
 
 #endif//NFA_H
