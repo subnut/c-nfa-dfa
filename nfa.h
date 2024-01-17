@@ -1,6 +1,7 @@
 #ifndef NFA_H
 #define NFA_H
 #include <stdbool.h>
+#include <stdio.h>	// for FILE type
 
 /*
  * Number of items in the NFA input alphabet
@@ -38,5 +39,8 @@ void		addTrans(Nstate *, char, Nstatenum);
 
 NFA *		nfa4str(const char *);
 NFA *		nfaOR(NFA *, NFA *);
+
+void		printNFA(NFA *);
+void		fprintNFA(FILE *, NFA *);
 
 #endif//NFA_H
