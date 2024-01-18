@@ -96,22 +96,26 @@ void printNFA(NFA *nfa) {
 	fprintNFA(stdout, nfa);
 }
 
-void fprintNFA(FILE *restrict f, NFA *nfa) {
 #define EPS "\317\265" // ϵ
-#define puts(s) fputs(s, f)
+#define puts(s) fputs(s"\n", f)
+#define printf(x...) fprintf(f, x)
+void fprintNFA(FILE *restrict f, NFA *nfa) {
 	puts("digraph {");
 	puts("\trankdir=LR");
 	puts("\tnode [shape=circle]");
-	fprintf(f, "\t\"%d\" [shape=doublecircle]\n", nfa->end);
+	printf("\t\"%d\" [shape=doublecircle]\n", nfa->end);
 	puts("");
 	for (Nstatenum i = 0; i < nfa->statecount; i++) {
 		for (Nstatenum j = 0; j < nfa->states[i]->etnum; j++)
-			fprintf(f, "\t\"%d\" -> \"%d\" [label=\""EPS"\"]\n", i, nfa->states[i]->etrans[j]);
+			printf("\t\"%d\" -> \"%d\" [label=\""EPS"\"]\n",
+					i, nfa->states[i]->etrans[j]);
 		for (int c = 0; c < NFA_ALSIZ; c++)
 			for (Nstatenum j = 0; j < nfa->states[i]->tnum[c]; j++)
-				fprintf(f, "\t\"%d\" -> \"%d\" [label=\"%c\"]\n", i, nfa->states[i]->trans[c][j], c);
+				printf("\t\"%d\" -> \"%d\" [label=\"%c\"]\n",
+						i, nfa->states[i]->trans[c][j], c);
 	}
 	puts("}");
+}
+#undef printf
 #undef puts
 #undef EPS
-}
