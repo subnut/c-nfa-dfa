@@ -76,24 +76,69 @@ NFA *nfa4str(const char *str) {
 	return nfa;
 }
 
-NFA *nfaOR(NFA *a, NFA *b) {
+NFA *nfaMultiOR(int argc, NFA **argv) {
+	NFA *nfa = newNFA();
+	nfa->end = addNstate(nfa);
+
+	for (int i = 0; i < argc; i++) {
+		Nstatenum istart = appendNFA(nfa, argv[i]);
+		addEtrans(nfa->states[nfa->start], istart);
+		addEtrans(nfa->states[argv[i]->end + istart], nfa->end);
+	}
+
+	return nfa;
+}
+
+NFA *nfaSTAR(NFA *a) {
 	NFA *nfa = newNFA();
 	nfa->end = addNstate(nfa);
 
 	Nstatenum astart = appendNFA(nfa, a);
 	addEtrans(nfa->states[nfa->start], astart);
+	addEtrans(nfa->states[a->end + astart], astart);
+	addEtrans(nfa->states[a->end + astart], nfa->end);
+	addEtrans(nfa->states[nfa->start], nfa->end);
+
+	return nfa;
+}
+NFA *nfaPLUS(NFA *a) {
+	NFA *nfa = newNFA();
+	nfa->end = addNstate(nfa);
+
+	Nstatenum astart = appendNFA(nfa, a);
+	addEtrans(nfa->states[nfa->start], astart);
+	addEtrans(nfa->states[a->end + astart], astart);
 	addEtrans(nfa->states[a->end + astart], nfa->end);
 
-	Nstatenum bstart = appendNFA(nfa, b);
-	addEtrans(nfa->states[nfa->start], bstart);
-	addEtrans(nfa->states[b->end + bstart], nfa->end);
+	return nfa;
+}
+NFA *nfaOPT(NFA *a) {
+	NFA *nfa = newNFA();
+	nfa->end = addNstate(nfa);
+
+	Nstatenum astart = appendNFA(nfa, a);
+	addEtrans(nfa->states[nfa->start], astart);
+	addEtrans(nfa->states[nfa->start], nfa->end);
+	addEtrans(nfa->states[a->end + astart], nfa->end);
 
 	return nfa;
 }
 
-void printNFA(NFA *nfa) {
-	fprintNFA(stdout, nfa);
+void freeNstate(Nstate *nstate) {
+	if (nstate->etrans != NULL)
+		free(nstate->etrans);
+	for (Nstatenum i = 0; i < NFA_ALSIZ; i++)
+		if (nstate->trans[i] != NULL)
+			free(nstate->trans[i]);
+	free(nstate);
 }
+void freeNFA(NFA *nfa) {
+	for (Nstatenum i = 0; i < nfa->statecount; i++)
+		freeNstate(nfa->states[i]);
+	free(nfa->states);
+	free(nfa);
+}
+
 
 #define EPS "\317\265" // ϵ
 #define puts(s) fputs(s"\n", f)
@@ -118,3 +163,88 @@ void fprintNFA(FILE *restrict f, NFA *nfa) {
 #undef printf
 #undef puts
 #undef EPS
+
+
+/*
+ * This whole thing is a bunch of hacky (to me) if-else-ifs
+ * Here be dragons!!!  (That you can fight if you've read THE Dragon Book) :P
+ */
+NFA *nfaMultiSEQ(int argc, NFA **argv) {
+	new(nfa, NFA);
+	nfa->start = argv[0]->start;
+	nfa->end = argv[0]->end;
+	appendNFA(nfa, argv[0]);
+
+	for (argv++; --argc; argv++) {
+		Nstatenum newidx = appendNFA(nfa, *argv);
+		// Copy current start's transitions to previous end
+		{
+			Nstate *end = nfa->states[nfa->end];
+			Nstate *cur = nfa->states[newidx + argv[0]->start];
+			if (cur->etnum > 0) {
+				Nstatenum oldetnum = end->etnum;
+				add(end->etnum, cur->etnum);
+				reallocarr(end->etrans, end->etnum);
+				for (Nstatenum i = 0; i < cur->etnum; i++)
+					end->etrans[oldetnum + i] = cur->etrans[i];
+			}
+			for (int i = 0; i < NFA_ALSIZ; i++)
+				if (cur->tnum[i] > 0) {
+					Nstatenum oldtnum = end->tnum[i];
+					add(end->tnum[i], cur->tnum[i]);
+					reallocarr(end->trans[i], end->tnum[i]);
+					for (Nstatenum j = 0; j < cur->tnum[i]; j++)
+						end->trans[i][oldtnum + j] = cur->trans[i][j];
+				}
+		}
+
+		// Destroy current start state's struct
+		freeNstate(nfa->states[newidx + argv[0]->start]);
+
+		// For all states after current start, shift them -1
+		// Also reduce statecount accordingly
+		for (Nstatenum i = newidx + argv[0]->start; i < nfa->statecount; i++)
+			nfa->states[i] = nfa->states[i + 1];
+		add(nfa->statecount, -1);
+
+		// Fix broken references
+		for (Nstatenum i = newidx; i < nfa->statecount; i++) {
+			Nstate *ns = nfa->states[i];
+			for (Nstatenum i = 0; i < ns->etnum; i++)
+				if (ns->etrans[i] > newidx + argv[0]->start)
+					ns->etrans[i] -= 1;
+				else if (ns->etrans[i] == newidx + argv[0]->start)
+					ns->etrans[i] = nfa->end;
+			for (int i = 0; i < NFA_ALSIZ; i++)
+				for (Nstatenum j = 0; j < ns->tnum[i]; j++)
+					if (ns->trans[i][j] > newidx + argv[0]->start)
+						ns->trans[i][j] -= 1;
+					else if (ns->trans[i][j] == newidx + argv[0]->start)
+						ns->trans[i][j] = nfa->end;
+		}
+		// We gotta fix the references we copied into nfa->end
+		Nstatenum i = nfa->end;
+		{
+			Nstate *ns = nfa->states[i];
+			for (Nstatenum i = 0; i < ns->etnum; i++)
+				if (ns->etrans[i] > newidx + argv[0]->start)
+					ns->etrans[i] -= 1;
+				else if (ns->etrans[i] == newidx + argv[0]->start)
+					ns->etrans[i] = nfa->end;
+			for (int i = 0; i < NFA_ALSIZ; i++)
+				for (Nstatenum j = 0; j < ns->tnum[i]; j++)
+					if (ns->trans[i][j] > newidx + argv[0]->start)
+						ns->trans[i][j] -= 1;
+					else if (ns->trans[i][j] == newidx + argv[0]->start)
+						ns->trans[i][j] = nfa->end;
+		}
+
+		// Set the new end
+		if (newidx + argv[0]->end > newidx + argv[0]->start)
+			nfa->end = newidx + argv[0]->end - 1;
+		else if (newidx + argv[0]->end != newidx + argv[0]->start)
+			nfa->end = newidx + argv[0]->end;
+	}
+
+	return nfa;
+}

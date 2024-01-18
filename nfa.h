@@ -31,16 +31,32 @@ typedef struct {
 
 
 NFA *		newNFA(void);
-Nstatenum 	addNstate(NFA *);
+Nstatenum	addNstate(NFA *);
 Nstatenum	appendNFA(NFA *, NFA *);
 
 Nstate *	copyNstate(Nstate *);
 void		addTrans(Nstate *, char, Nstatenum);
 
-NFA *		nfa4str(const char *);
-NFA *		nfaOR(NFA *, NFA *);
 
-void		printNFA(NFA *);
-void		fprintNFA(FILE *, NFA *);
+NFA *	nfa4str(const char *);
+
+
+NFA *	nfaSTAR(NFA *);
+NFA *	nfaPLUS(NFA *);
+NFA *	nfaOPT(NFA *);
+
+#define nfaOR(a, b)  nfaMultiOR(2, (NFA*[]){a, b})
+#define nfaSEQ(a, b) nfaMultiSEQ(2, (NFA*[]){a, b})
+NFA *	nfaMultiOR(int, NFA **);
+NFA *	nfaMultiSEQ(int, NFA **);
+
+
+void	freeNstate(Nstate *);
+void	freeNFA(NFA *);
+
+
+#define printNFA(NFA) \
+	fprintNFA(stdout, NFA)
+void	fprintNFA(FILE *, NFA *);
 
 #endif//NFA_H
