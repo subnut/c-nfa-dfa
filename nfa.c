@@ -33,8 +33,7 @@ Nstate *copyNstate(Nstate *old) {
 	return new;
 }
 
-/* Returns the value of nfa.statecount before appendNFA was called
- * NOTE: Does NOT touch the nfa.endstates */
+/* Returns the value of nfa.statecount before appendNFA was called */
 Nstatenum appendNFA(NFA *nfa, NFA *extend) {
 	Nstatenum oldcount = nfa->statecount;
 	add(nfa->statecount, extend->statecount);
