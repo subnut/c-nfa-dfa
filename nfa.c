@@ -201,10 +201,22 @@ NFA *nfaMultiSEQ(int argc, NFA **argv) {
 		// Destroy current start state's struct
 		freeNstate(nfa->states[newidx + argv[0]->start]);
 
+		/*
+		 * NOTE: These kinda loops are buffer overruns waiting to happen.
+		 *       Case in hand, this loop was previously written like this -
+		 *
+		 * for (Nstatenum i = newidx + argv[0]->start; i < nfa->statecount; i++)
+		 * 	nfa->states[i] = nfa->states[i + 1];
+		 *
+		 * Can you see the error? It's OK if you can't; I couldn't see it either.
+		 * HINT: note the +1 in the [i + 1], and that the loop condition is on i.
+		 */
+
 		// For all states after current start, shift them -1
 		// Also reduce statecount accordingly
-		for (Nstatenum i = newidx + argv[0]->start; i < nfa->statecount; i++)
-			nfa->states[i] = nfa->states[i + 1];
+		for (Nstatenum i = newidx + argv[0]->start,
+				j = i + 1; j < nfa->statecount; i++, j++)
+			nfa->states[i] = nfa->states[j];
 		add(nfa->statecount, -1);
 
 		// Fix broken references
