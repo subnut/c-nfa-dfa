@@ -1,4 +1,5 @@
 #include "common.h"
+#include "macros.h"
 #include "nfa.h"
 
 NFA *newNFA(void) {
@@ -24,7 +25,7 @@ Nstate *copyNstate(Nstate *old) {
 	reallocarr(new->etrans, new->etnum);
 	for (Nstatenum i = 0; i < new->etnum; i++)
 		new->etrans[i] = old->etrans[i];
-	for (int i = 0; i < NFA_ALSIZ; i++) {
+	for (int i = 0; i < ALSIZ; i++) {
 		new->tnum[i] = old->tnum[i];
 		reallocarr(new->trans[i], new->tnum[i]);
 		for (Nstatenum j = 0; j < new->tnum[i]; j++)
@@ -42,11 +43,11 @@ Nstatenum appendNFA(NFA *nfa, NFA *extend) {
 		nfa->states[oldcount + i] = copyNstate(extend->states[i]);
 		for (Nstatenum j = 0; j < nfa->states[oldcount + i]->etnum; j++)
 			nfa->states[oldcount + i]->etrans[j] += oldcount;
-		for (int j = 0; j < NFA_ALSIZ; j++)
+		for (int j = 0; j < ALSIZ; j++)
 			for (Nstatenum k = 0; k < nfa->states[oldcount + i]->tnum[j]; k++)
 				nfa->states[oldcount + i]->trans[j][k] += oldcount;
 	}
-	for (int i = 0; i < NFA_ALSIZ; i++)
+	for (int i = 0; i < ALSIZ; i++)
 		if (extend->alphabet[i])
 			nfa->alphabet[i] = true;
 	return oldcount;
@@ -127,7 +128,7 @@ NFA *nfaOPT(NFA *a) {
 void freeNstate(Nstate *nstate) {
 	if (nstate->etrans != NULL)
 		free(nstate->etrans);
-	for (Nstatenum i = 0; i < NFA_ALSIZ; i++)
+	for (Nstatenum i = 0; i < ALSIZ; i++)
 		if (nstate->trans[i] != NULL)
 			free(nstate->trans[i]);
 	free(nstate);
@@ -153,7 +154,7 @@ void fprintNFA(FILE *restrict f, NFA *nfa) {
 		for (Nstatenum j = 0; j < nfa->states[i]->etnum; j++)
 			printf("\t\"%d\" -> \"%d\" [label=\""EPS"\"]\n",
 					i, nfa->states[i]->etrans[j]);
-		for (int c = 0; c < NFA_ALSIZ; c++)
+		for (int c = 0; c < ALSIZ; c++)
 			for (Nstatenum j = 0; j < nfa->states[i]->tnum[c]; j++)
 				printf("\t\"%d\" -> \"%d\" [label=\"%c\"]\n",
 						i, nfa->states[i]->trans[c][j], c);
@@ -188,7 +189,7 @@ NFA *nfaMultiSEQ(int argc, NFA **argv) {
 				for (Nstatenum i = 0; i < cur->etnum; i++)
 					end->etrans[oldetnum + i] = cur->etrans[i];
 			}
-			for (int i = 0; i < NFA_ALSIZ; i++)
+			for (int i = 0; i < ALSIZ; i++)
 				if (cur->tnum[i] > 0) {
 					Nstatenum oldtnum = end->tnum[i];
 					add(end->tnum[i], cur->tnum[i]);
@@ -227,7 +228,7 @@ NFA *nfaMultiSEQ(int argc, NFA **argv) {
 					ns->etrans[i] -= 1;
 				else if (ns->etrans[i] == newidx + argv[0]->start)
 					ns->etrans[i] = nfa->end;
-			for (int i = 0; i < NFA_ALSIZ; i++)
+			for (int i = 0; i < ALSIZ; i++)
 				for (Nstatenum j = 0; j < ns->tnum[i]; j++)
 					if (ns->trans[i][j] > newidx + argv[0]->start)
 						ns->trans[i][j] -= 1;
@@ -243,7 +244,7 @@ NFA *nfaMultiSEQ(int argc, NFA **argv) {
 					ns->etrans[i] -= 1;
 				else if (ns->etrans[i] == newidx + argv[0]->start)
 					ns->etrans[i] = nfa->end;
-			for (int i = 0; i < NFA_ALSIZ; i++)
+			for (int i = 0; i < ALSIZ; i++)
 				for (Nstatenum j = 0; j < ns->tnum[i]; j++)
 					if (ns->trans[i][j] > newidx + argv[0]->start)
 						ns->trans[i][j] -= 1;
