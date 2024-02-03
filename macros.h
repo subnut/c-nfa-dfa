@@ -1,4 +1,5 @@
-#define _POSIX_C_SOURCE 200809L
+#include "common.h"
+
 #ifndef MACROS_H
 #define MACROS_H
 
@@ -12,10 +13,13 @@
  * errno.h	- errno
  * stdint.h	- SIZE_MAX
  * stdio.h	- stderr, fprintf
- * stdlib.h	- exit, EXIT_FAILURE, malloc, realloc
- * string.h	- strerror, memset
+ * stdlib.h	- exit, EXIT_FAILURE, malloc, realloc, free
+ * string.h	- strerror
  */
 
+/*
+ * error handling
+ */
 #define ensure(cond, msg) \
 	if (!(cond)) \
 	exit((fprintf(stderr, "[%s:%d] %s\n", \
@@ -32,14 +36,19 @@
 	if (cond) perror(msg)
 
 
-
+/*
+ * arithmetic
+ */
 #define add(var, val) { \
 	typeof(var) x = var + val; \
 	ensure(val > 0 ? x > var : x < var, "Overflow"); \
 	var = x; }
 
 
-
+/*
+ * memory management
+ */
+#define free(p) { free(p); p = NULL; }
 #define alloc(p, siz) \
 	p = malloc(siz); \
 	perrif(p == NULL, "Could not allocate memory")
@@ -48,19 +57,17 @@
  * NOTE
  * ====
  *
- * We wont't use calloc or bzero because setting the memory to zero
+ * We wont't use calloc/bzero/memset because setting the memory to zero
  * doesn't necessarily mean that pointers shall be initialized to NULL.
  *
  * The representation of NULL may vary depending on the underlying
  * architecture, and it might not always be all-zero-bits.
  *
  * See: https://stackoverflow.com/a/25212029
- *
  */
 #define new(var, T) \
 	T *var; alloc(var, sizeof(T)); \
 	*var = (T){0};	// Initialize everything to zero-value
-
 
 #define reallocarr(ptr, n) {\
 	size_t nmemb = (n); \

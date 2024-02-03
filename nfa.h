@@ -1,9 +1,9 @@
 #include "common.h"
+#include <stdbool.h>
+#include <stdio.h>	// FILE, stdout
 
 #ifndef NFA_H
 #define NFA_H
-#include <stdbool.h>
-#include <stdio.h>	// for FILE type
 
 /*
  * Currently we are assuming each NFA only has at most INT_MAX number of states.
@@ -11,12 +11,26 @@
  */
 typedef int Nstatenum;
 
-
+/*
+ * NOTE:
+ * Each Nstate refers to the next Nstate by its index in NFA.states[]
+ * Pay attention to the fact that this only contains indexes, not pointers
+ */
 typedef struct {
 	Nstatenum etnum, *etrans;
 	Nstatenum tnum[ALSIZ], *trans[ALSIZ];
 } Nstate;
 
+/*
+ * NOTE:
+ * The current data structure only supports one end state.
+ *
+ * A general NFA can have multiple end states, but we'll implement that
+ * if/when we need it. Right now, we only need one end state per NFA.
+ *
+ * Actually, the way we're using it now, the start state is always zero.
+ * So, even the start field can be removed if/when necessary.
+ */
 typedef struct {
 	Nstate **states;
 	Nstatenum statecount;
