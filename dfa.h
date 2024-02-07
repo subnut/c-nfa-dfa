@@ -35,11 +35,10 @@ typedef Dstatenum Dstate[ALSIZ];
  * 	That way we won't have to add additional logic to the DFA emulator
  */
 typedef struct {
-	bool *endstate;	// array of bools; length = statecount;
-	Dstate *states;	// array of Dstates
-	Dstatenum start;
 	Dstatenum statecount;
-	bool alphabet[ALSIZ];
+	Dstatenum start;
+	Dstate *states;	// array of Dstates
+	bool *endstate;	// array of bools; length = statecount;
 } DFA;
 
 
