@@ -7,8 +7,10 @@
 /*
  * Currently we are assuming each DFA only has at most INT_MAX number of states.
  * If the number of states were to increase beyond that, then change this typedef.
+ *
+ * NOTE: This type should always be unsigned, because signed overflow is UB.
  */
-typedef int Dstatenum;
+typedef unsigned int Dstatenum;
 
 /*
  * NOTE:

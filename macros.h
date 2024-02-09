@@ -38,6 +38,8 @@
 
 /*
  * arithmetic
+ *
+ * NOTE: This macro assumes that var is unsigned, as signed overflow is UB in C.
  */
 #define add(var, val) { \
 	typeof(var) x = var + val; \

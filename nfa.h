@@ -8,8 +8,10 @@
 /*
  * Currently we are assuming each NFA only has at most INT_MAX number of states.
  * If the number of states were to increase beyond that, then change this typedef.
+ *
+ * NOTE: This should always be unsigned, because signed overflow is Undefined Behaviour.
  */
-typedef int Nstatenum;
+typedef unsigned int Nstatenum;
 
 /*
  * NOTE:
