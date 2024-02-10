@@ -49,15 +49,16 @@ typedef struct {
  */
 typedef struct {
 	size_t hashlen;
-	size_t len;	// XXX: might change.
+	size_t arrlen;
+	MapElem *arr;
 } Map;
 
 /*
  * Adds a new entry to the map corresponding to the given MapHash.
  * Returns the pointer to the newly-created MapElem (if successful).
  *
- * N.B. Returns NULL if the MapElem corresponding to the given MapHash already
- * exists. (Since it wasn't created.)
+ * N.B. Doesn't check if the MapElem corresponding to the given MapHash
+ * already exists.
  */
 MapElem *mapAdd(Map *, MapHash);
 
@@ -68,7 +69,7 @@ MapElem *mapAdd(Map *, MapHash);
 MapElem *mapGet(Map *, MapHash);
 
 
-Map *newMap(void);
+Map *newMap(size_t);
 void freeMap(Map *);	// frees everything recursively.
 
 #endif /* MAP_H */
