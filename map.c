@@ -46,7 +46,7 @@ MapElem *mapAdd(Map *map, MapHash hash) {
 
 	// Set MapElem.hash to given hash
 	reallocarr(elem->hash, map->hashlen);
-	memcpy(hash, elem->hash, map->hashlen);
+	memcpy(elem->hash, hash, map->hashlen);
 
 	// Return pointer to the MapElem
 	return elem;
