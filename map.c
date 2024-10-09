@@ -19,7 +19,7 @@ Map *newMap(size_t hashlen) {
 	return map;
 }
 
-MapElem *mapGet(Map *map, const MapHash hash) {
+MapElem *mapGet(Map *map, const MapHash *hash) {
 	for (size_t i = 0; i < map->arrlen; i++)
 		if (0 == memcmp(hash, map->arr[i].hash, map->hashlen))
 			return &map->arr[i];
@@ -35,7 +35,7 @@ void freeMap(Map *map) {
 	free(map);
 }
 
-MapElem *mapAdd(Map *map, const MapHash hash) {
+MapElem *mapAdd(Map *map, const MapHash *hash) {
 	// Add new MapElem
 	add(map->arrlen, 1);
 	reallocarr(map->arr, map->arrlen);

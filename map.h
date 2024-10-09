@@ -21,28 +21,7 @@
  * store the hash as an unsigned char array. Since the whole array is guaranteed
  * to be contiguous, we can increase the length of our hash as much as we want.
  */
-#define MapHash unsigned char *
-/*
- * NOTE:
- * 	We didn't use typedef here, because if we wrote
- *
- * 		typedef MapHash unsigned char *
- *
- * 	And then used it like so
- *
- * 		void foo(const MapHash hash)
- *
- * 	Then the const wouldn't be doing what we expect it to.
- * 	i.e. instead of expanding to
- *
- * 		const unsigned char *
- *
- * 	it'll expand to
- *
- * 		unsigned char * const
- *
- * 	which probably isn't what we wanted.
- */
+typedef unsigned char MapHash;
 
 /*
  * WHY?
@@ -60,7 +39,7 @@
  * There may be additional fields depending on the datastructure being used.
  */
 typedef struct {
-	MapHash hash;
+	MapHash *hash;
 	void *data;
 } MapElem;
 
@@ -81,13 +60,13 @@ typedef struct {
  * N.B. Doesn't check if the MapElem corresponding to the given MapHash
  * already exists.
  */
-MapElem *mapAdd(Map *, const MapHash);
+MapElem *mapAdd(Map *, const MapHash *);
 
 /*
  * Gets the pointer to the MapElem corresponding to the given MapHash.
  * Returns NULL if said MapElem doesn't exist.
  */
-MapElem *mapGet(Map *, const MapHash);
+MapElem *mapGet(Map *, const MapHash *);
 
 
 Map *newMap(size_t);
