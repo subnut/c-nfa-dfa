@@ -25,6 +25,11 @@ hash(const bool *state, unsigned char *buf, Nstatenum statecount)
 static void
 setEclosure(NFA *nfa, bool *states)
 {
+	/*
+	 * TODO:
+	 * Compute ϵ-closure using the stack method shown in fig. 3.33
+	 * in Compilers Vol.2 by Alfred Aho (purple dragon book)
+	 */
 	bool changed; do {
 		changed = false;
 		for (Nstatenum i = 0; i < nfa->statecount; i++)
