@@ -42,9 +42,9 @@
  * NOTE: This macro assumes that var is unsigned, as signed overflow is UB in C.
  */
 #define add(var, val) { \
-	typeof(var) x = var + val; \
-	ensure(val > 0 ? x > var : x < var, "Overflow"); \
-	var = x; }
+	unsigned long long x_x = var + val; \
+	ensure(val > 0 ? x_x > var : x_x < var, "Overflow"); \
+	var = x_x; }
 
 
 /*
@@ -73,7 +73,7 @@
 
 #define reallocarr(ptr, n) {\
 	size_t nmemb = (n); \
-	ptr = reallocarray(ptr, nmemb, sizeof(typeof(*ptr))); \
+	ptr = reallocarray(ptr, nmemb, sizeof *ptr); \
 	perrif(ptr == NULL, "Could not allocate memory"); }
 
 // s1 * s2 <= SIZE_MAX iff both s1 and s2 < sqrt(SIZE_MAX+1)
