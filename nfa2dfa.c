@@ -25,13 +25,14 @@ hash(const bool *state, unsigned char *buf, Nstatenum statecount)
 static void
 setEclosure(NFA *nfa, bool *states)
 {
-	for (bool changed = true; changed; changed = false)
+	bool changed; do {
+		changed = false;
 		for (Nstatenum i = 0; i < nfa->statecount; i++)
 			if (states[i])
 				for (Nstatenum j = 0; j < nfa->states[i]->etnum; j++)
 					if (states[nfa->states[i]->etrans[j]] == false)
 						states[nfa->states[i]->etrans[j]] = changed = true;
-
+	} while(changed);
 }
 
 static void
