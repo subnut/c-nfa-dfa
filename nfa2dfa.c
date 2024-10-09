@@ -23,6 +23,16 @@ hash(const bool *state, unsigned char *buf, Nstatenum statecount)
 }
 
 static void
+unhash(const unsigned char *hash, bool *statebuf, Nstatenum statecount)
+{
+	memset(statebuf, false, statecount);
+	for (Nstatenum i = 0; i < statecount; i++)
+		statebuf[i] = hash[i / CHAR_BIT]
+				& 1 << (CHAR_BIT * (i / CHAR_BIT + 1) - i - 1)
+				? true : false;
+}
+
+static void
 setEclosure(NFA *nfa, bool *states)
 {
 	/*
