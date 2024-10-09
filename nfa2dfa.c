@@ -12,8 +12,18 @@
  * string.h	- memset, memcpy
  */
 
+/*
+ * Why?
+ *
+ * Because, according to C99, unsigned char is the only integer type that is
+ * guaranteed to have no padding whatsoever; also, its object representation
+ * is the exact same as its pure binary representation.
+ */
+typedef
+unsigned char hash_t;
+
 static void
-hash(const bool *state, unsigned char *buf, Nstatenum statecount)
+hash(const bool *state, hash_t *buf, Nstatenum statecount)
 {
 	memset(buf, 0, statecount / CHAR_BIT + 1);
 	for (Nstatenum i = 0; i < statecount; i++)
@@ -23,7 +33,7 @@ hash(const bool *state, unsigned char *buf, Nstatenum statecount)
 }
 
 static void
-unhash(const unsigned char *hash, bool *statebuf, Nstatenum statecount)
+unhash(const hash_t *hash, bool *statebuf, Nstatenum statecount)
 {
 	memset(statebuf, false, statecount);
 	for (Nstatenum i = 0; i < statecount; i++)
