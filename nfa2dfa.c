@@ -88,6 +88,16 @@ nfa2dfa(NFA *nfa)
 	bool *statebuf = calloc(N.statecount, sizeof(bool));
 	perrif(statebuf == NULL, "Could not allocate memory");
 
+	/*
+	 * TODO
+	 * Use some kind of hashmap (preferably red-black tree) for `dstates`
+	 * instead of using just an array.
+	 *
+	 * Keep in mind that there should be a way to iterate over all the
+	 * elements of the map, as we shall need to do so when creating the
+	 * final DFA.
+	 */
+
 	/* Initialize dstates */
 	struct Dstate {
 		bool marked;
@@ -97,6 +107,7 @@ nfa2dfa(NFA *nfa)
 	size_t dscount = 0;
 	struct Dstate *dstates = NULL;
 
+	// dsc is the index of the last-added element
 #define dsc (dscount - 1)
 
 	/* First state (unmarked) */
