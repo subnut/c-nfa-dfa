@@ -139,17 +139,21 @@ nfa2dfa(NFA *nfa)
 				bool exists = false;
 				for (size_t ii = 0; ii < dscount; ii++)
 					if (0 == memcmp(dstates[ii].hash, hashbuf, HASHLEN)) {
+						// Found. Add to Dtrans.
+						dstates[i].trans[c] = &dstates[ii];
 						exists = true;
 						break;
 					}
 				if (!exists) {
+					/* state not in Dstates. add. */
 					reallocarr(dstates, ++dscount);		// allocate
 					dstates[dsc] = (struct Dstate){0};	// initialize
 					reallocarr(dstates[dsc].hash, HASHLEN);
 					memcpy(dstates[dsc].hash, hashbuf, HASHLEN);
 					dstates[dsc].marked = false;
+					// Add to Dtrans.
+					dstates[i].trans[c] = &dstates[dsc];
 				}
-				dstates[i].trans[c] = &dstates[dsc];
 			}
 		}
 	}
