@@ -69,7 +69,7 @@ NFA *nfa4str(const char *str) {
 	Nstatenum oldstate = nfa->statecount - 1;
 	Nstatenum newstate = oldstate;
 	for (size_t i = 0; i < strlen(str); i++) {
-		nfa->alphabet[i] = true;
+		nfa->alphabet[str[i]] = true;
 		oldstate = newstate; newstate = addNstate(nfa);
 		addTrans(nfa->states[oldstate], str[i], newstate);
 	}
