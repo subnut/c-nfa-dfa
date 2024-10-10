@@ -5,11 +5,13 @@
 
 #include <limits.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <string.h>
 
 /*
  * limits.h	- CHAR_BIT
  * stdbool.h	- bool, true, false
+ * stdlib.h	- calloc
  * string.h	- memset, memcpy
  */
 
