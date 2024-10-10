@@ -121,37 +121,37 @@ nfa2dfa(NFA *nfa)
 	bool unmarked = true;
 	while (unmarked) {
 		unmarked = false;
-		for (size_t i = 0; i < dscount; i++)
-			if (!dstates[i].marked) {
-				unmarked = dstates[i].marked = true;
-				for (size_t c = 0; c < ALSIZ; c++)
-				{
-					if (!N.alphabet[c])
-						continue;
+		for (size_t i = 0; i < dscount; i++) {
+			if (dstates[i].marked) continue;
+			dstates[i].marked = unmarked = true;
+			for (size_t c = 0; c < ALSIZ; c++)
+			{
+				if (!N.alphabet[c])
+					continue;
 
-					bufreset();
-					unhash(dstates[i].hash, statebuf, N.statecount);
-					move(nfa, statebuf, c);
-					setEclosure(nfa, statebuf);
-					hash(statebuf, hashbuf, N.statecount);
+				bufreset();
+				unhash(dstates[i].hash, statebuf, N.statecount);
+				move(nfa, statebuf, c);
+				setEclosure(nfa, statebuf);
+				hash(statebuf, hashbuf, N.statecount);
 
-					/* check if this state is in Dstates */
-					bool exists = false;
-					for (size_t ii = 0; ii < dscount; ii++)
-						if (0 == memcmp(dstates[ii].hash, hashbuf, HASHLEN)) {
-							exists = true;
-							break;
-						}
-					if (!exists) {
-						reallocarr(dstates, ++dscount);		// allocate
-						dstates[dsc] = (struct Dstate){0};	// initialize
-						reallocarr(dstates[dsc].hash, HASHLEN);
-						memcpy(dstates[dsc].hash, hashbuf, HASHLEN);
-						dstates[dsc].marked = false;
+				/* check if this state is in Dstates */
+				bool exists = false;
+				for (size_t ii = 0; ii < dscount; ii++)
+					if (0 == memcmp(dstates[ii].hash, hashbuf, HASHLEN)) {
+						exists = true;
+						break;
 					}
-					dstates[i].trans[c] = &dstates[dsc];
+				if (!exists) {
+					reallocarr(dstates, ++dscount);		// allocate
+					dstates[dsc] = (struct Dstate){0};	// initialize
+					reallocarr(dstates[dsc].hash, HASHLEN);
+					memcpy(dstates[dsc].hash, hashbuf, HASHLEN);
+					dstates[dsc].marked = false;
 				}
+				dstates[i].trans[c] = &dstates[dsc];
 			}
+		}
 	}
 
 
