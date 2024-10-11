@@ -99,21 +99,21 @@ nfa2dfa(NFA *nfa)
 	 */
 
 	/* Initialize dstates */
-	struct Dstate {
+	struct dstate {
 		bool marked;
 		hash_t *hash;
-		struct Dstate *trans[ALSIZ];
+		struct dstate *trans[ALSIZ];
 		size_t f_index;	// final index in Dstates array
 	};
 	size_t dscount = 0;
-	struct Dstate *dstates = NULL;
+	struct dstate *dstates = NULL;
 
 	// dsc is the index of the last-added element
 #define dsc (dscount - 1)
 
 	/* First state (unmarked) */
 	reallocarr(dstates, ++dscount);		// allocate
-	dstates[dsc] = (struct Dstate){0};	// initialize
+	dstates[dsc] = (struct dstate){0};	// initialize
 	statebuf[N.start] = true;
 	setEclosure(nfa, statebuf);
 	hash(statebuf, hashbuf, N.statecount);
@@ -159,7 +159,7 @@ nfa2dfa(NFA *nfa)
 				if (!exists) {
 					/* state not in Dstates. add. */
 					reallocarr(dstates, ++dscount);		// allocate
-					dstates[dsc] = (struct Dstate){0};	// initialize
+					dstates[dsc] = (struct dstate){0};	// initialize
 					reallocarr(dstates[dsc].hash, HASHLEN);
 					memcpy(dstates[dsc].hash, hashbuf, HASHLEN);
 					dstates[dsc].marked = false;
