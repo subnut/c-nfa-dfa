@@ -168,6 +168,8 @@ nfa2dfa(NFA *nfa)
 			}
 		}
 	}
+#undef dsc
+#undef bufreset
 
 
 	// free dstates
@@ -181,3 +183,4 @@ nfa2dfa(NFA *nfa)
 
 	return NULL;
 }
+#undef HASHLEN
