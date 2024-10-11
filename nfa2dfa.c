@@ -103,6 +103,7 @@ nfa2dfa(NFA *nfa)
 		bool marked;
 		hash_t *hash;
 		struct Dstate *trans[ALSIZ];
+		size_t f_index;	// final index in Dstates array
 	};
 	size_t dscount = 0;
 	struct Dstate *dstates = NULL;
@@ -171,6 +172,9 @@ nfa2dfa(NFA *nfa)
 #undef dsc
 #undef bufreset
 
+	/* set f_index for each dstate */
+	for (size_t i = 0; i < dscount; i++)
+		dstates[i].f_index = i;
 
 	// free dstates
 	for (size_t i = 0; i < dscount; i++)
