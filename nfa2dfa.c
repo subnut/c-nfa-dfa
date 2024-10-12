@@ -104,6 +104,7 @@ nfa2dfa(NFA *nfa)
 		hash_t *hash;
 		struct dstate *trans[ALSIZ];
 		size_t f_index;	// final index in Dstates array
+		bool endstate;
 	};
 	size_t dscount = 0;
 	struct dstate *dstates = NULL;
@@ -116,10 +117,13 @@ nfa2dfa(NFA *nfa)
 	dstates[dsc] = (struct dstate){0};	// initialize
 	statebuf[N.start] = true;
 	setEclosure(nfa, statebuf);
+	dstates[dsc] = (struct dstate){
+		.marked = false,
+		.endstate = statebuf[N.end],
+	};
 	hash(statebuf, hashbuf, N.statecount);
 	reallocarr(dstates[dsc].hash, HASHLEN);
 	memcpy(dstates[dsc].hash, hashbuf, HASHLEN);
-	dstates[dsc].marked = false;
 
 	// reset buffers
 	memset(hashbuf, 0, HASHLEN);
@@ -160,9 +164,12 @@ nfa2dfa(NFA *nfa)
 					/* state not in Dstates. add. */
 					reallocarr(dstates, ++dscount);		// allocate
 					dstates[dsc] = (struct dstate){0};	// initialize
+					dstates[dsc] = (struct dstate){
+						.marked = false,
+						.endstate = statebuf[N.end],
+					};
 					reallocarr(dstates[dsc].hash, HASHLEN);
 					memcpy(dstates[dsc].hash, hashbuf, HASHLEN);
-					dstates[dsc].marked = false;
 					// Add to Dtrans.
 					dstates[i].trans[c] = &dstates[dsc];
 				}
@@ -176,6 +183,18 @@ nfa2dfa(NFA *nfa)
 	for (size_t i = 0; i < dscount; i++)
 		dstates[i].f_index = i;
 
+	DFA *dfa = newDFA(dscount);
+	DFA D = *dfa;
+
+	for (size_t i = 0; i < dscount; i++) {
+		D.states[i+1].isendstate = dstates[i].endstate;
+		for (size_t j = 0; j < ALSIZ; j++)
+			D.states[i + 1].dtrans[j] =
+					NULL == dstates[i].trans[j]
+						? 0
+						: dstates[i].trans[j]->f_index + 1; // +1 bcoz i+1
+	}
+
 	// free dstates
 	for (size_t i = 0; i < dscount; i++)
 		free(dstates[i].hash);
@@ -185,6 +204,6 @@ nfa2dfa(NFA *nfa)
 	free(statebuf);
 	free(hashbuf);
 
-	return NULL;
+	return dfa;
 }
 #undef HASHLEN

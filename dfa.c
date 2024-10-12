@@ -7,7 +7,9 @@
  * stdlib.h	- calloc
  */
 
-DFA *newDFA(Dstatenum statenum) {
+DFA *
+newDFA(Dstatenum statenum)
+{
 	new(dfa, DFA);
 
 	dfa->arrsiz = statenum;
@@ -39,4 +41,11 @@ DFA *newDFA(Dstatenum statenum) {
 		dfa->states[0].dtrans[i] = 0;
 
 	return dfa;
+}
+
+void
+freeDFA(DFA *dfa)
+{
+	free(dfa->states);
+	free(dfa);
 }
