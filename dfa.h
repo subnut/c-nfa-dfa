@@ -24,6 +24,7 @@ typedef struct {
 
 DFA *newDFA(Dstatenum statenum);
 //Dstate *addDstate(DFA *dfa);
+void printDFA(DFA *dfa);
 void freeDFA(DFA *dfa);
 
 #endif//DFA_H

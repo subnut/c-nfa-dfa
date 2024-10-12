@@ -49,3 +49,29 @@ freeDFA(DFA *dfa)
 	free(dfa->states);
 	free(dfa);
 }
+
+void
+printDFA(DFA *dfa)
+{
+	puts("digraph {\n"
+		"\trankdir=LR\n"
+		"\tnode [shape=circle]\n");
+
+	// skip zero-th state
+	for (Dstatenum i = 1; i < dfa->arrsiz; i++) {
+		puts("");
+		if (dfa->states[i].isendstate)
+			printf("\t\"%d\" [shape=doublecircle]\n", i);
+
+		for (int c = 0; c < ALSIZ; c++) {
+			if (0 == dfa->states[i].dtrans[c])
+				// don't print transitions to state zero
+				// those are probably just unpopulated (and therefore, invalid)
+				continue;
+			printf("\t\"%d\" -> \"%d\" [label=\"%c\"]\n",
+					i, dfa->states[i].dtrans[c], c);
+		}
+	}
+
+	puts("}");
+}
