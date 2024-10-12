@@ -101,28 +101,34 @@ nfa2dfa(NFA *nfa)
 	/* Initialize dstates */
 	struct dstate {
 		bool marked;
-		hash_t *hash;
-		struct dstate *trans[ALSIZ];
-		size_t f_index;	// final index in Dstates array
 		bool endstate;
+		hash_t *hash;
+		size_t trans[ALSIZ];
 	};
-	size_t dscount = 0;
-	struct dstate *dstates = NULL;
+	size_t dscount = 1;	// zero-th state
+	struct dstate *dstates = calloc(++dscount, sizeof *dstates);
+	perrif(NULL == dstates, "Could not allocate memory");
+	dstates[0] = (struct dstate) {
+		.marked = true,		// skip this state in the main loop below
+		.endstate = true,	// emulator should stop when it reaches this state
+		.hash = NULL,
+		.trans = {0},
+	};
 
 	// dsc is the index of the last-added element
 #define dsc (dscount - 1)
 
 	/* First state (unmarked) */
-	reallocarr(dstates, ++dscount);		// allocate
-	dstates[dsc] = (struct dstate){0};	// initialize
-	statebuf[N.start] = true;
-	setEclosure(nfa, statebuf);
-	dstates[dsc] = (struct dstate){
+	dstates[dsc] = (struct dstate) {
 		.marked = false,
 		.endstate = statebuf[N.end],
+		.hash = calloc(HASHLEN, sizeof (hash_t)),
+		.trans = {0},
 	};
+	perrif(NULL == dstates[dsc].hash, "Could not allocate memory");
+	statebuf[N.start] = true;
+	setEclosure(nfa, statebuf);
 	hash(statebuf, hashbuf, N.statecount);
-	reallocarr(dstates[dsc].hash, HASHLEN);
 	memcpy(dstates[dsc].hash, hashbuf, HASHLEN);
 
 	// reset buffers
@@ -153,25 +159,27 @@ nfa2dfa(NFA *nfa)
 
 				/* check if this state is in Dstates */
 				bool exists = false;
-				for (size_t ii = 0; ii < dscount; ii++)
+				for (size_t ii = 1; ii < dscount; ii++)	// ignore the zero-th state
 					if (0 == memcmp(dstates[ii].hash, hashbuf, HASHLEN)) {
 						// Found. Add to Dtrans.
-						dstates[i].trans[c] = &dstates[ii];
+						dstates[i].trans[c] = ii;
 						exists = true;
 						break;
 					}
 				if (!exists) {
 					/* state not in Dstates. add. */
-					reallocarr(dstates, ++dscount);		// allocate
-					dstates[dsc] = (struct dstate){0};	// initialize
-					dstates[dsc] = (struct dstate){
+					ensure(++dscount > 0, "Overflow");
+					dstates = reallocarray(dstates, dscount, sizeof *dstates);
+					dstates[dsc] = (struct dstate) {
 						.marked = false,
 						.endstate = statebuf[N.end],
+						.hash = calloc(HASHLEN, sizeof (hash_t)),
+						.trans = {0},
 					};
-					reallocarr(dstates[dsc].hash, HASHLEN);
+					perrif(NULL == dstates[dsc].hash, "Could not allocate memory");
 					memcpy(dstates[dsc].hash, hashbuf, HASHLEN);
 					// Add to Dtrans.
-					dstates[i].trans[c] = &dstates[dsc];
+					dstates[i].trans[c] = dsc;
 				}
 			}
 		}
@@ -179,24 +187,17 @@ nfa2dfa(NFA *nfa)
 #undef dsc
 #undef bufreset
 
-	/* set f_index for each dstate */
-	for (size_t i = 0; i < dscount; i++)
-		dstates[i].f_index = i;
-
 	DFA *dfa = newDFA(dscount);
 	DFA D = *dfa;
 
 	for (size_t i = 0; i < dscount; i++) {
-		D.states[i+1].isendstate = dstates[i].endstate;
+		D.states[i].isendstate = dstates[i].endstate;
 		for (size_t j = 0; j < ALSIZ; j++)
-			D.states[i + 1].dtrans[j] =
-					NULL == dstates[i].trans[j]
-						? 0
-						: dstates[i].trans[j]->f_index + 1; // +1 bcoz i+1
+			D.states[i].dtrans[j] = dstates[i].trans[j];
 	}
 
 	// free dstates
-	for (size_t i = 0; i < dscount; i++)
+	for (size_t i = 1; i < dscount; i++)	// zero-th state don't need free-ing
 		free(dstates[i].hash);
 	free(dstates);
 
